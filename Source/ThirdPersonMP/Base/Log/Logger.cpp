@@ -1,0 +1,7 @@
+#include "Logger.h"
+
+DEFINE_LOG_CATEGORY(NetLog);
+DEFINE_LOG_CATEGORY(MgrTick);
+DEFINE_LOG_CATEGORY(TestUI);
+DEFINE_LOG_CATEGORY(HuangYong);
+
