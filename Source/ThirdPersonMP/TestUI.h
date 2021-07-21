@@ -7,10 +7,6 @@
 
 #include "TestUI.generated.h"
 
-namespace sudoku {
-    class SudokuResponse;
-}
-
 /**
  *
  */
@@ -26,11 +22,13 @@ private:
     UFUNCTION()
         void onButtonTest();
 
-    void solved(sudoku::SudokuResponse* response);
+    //void solved(sudoku::SudokuResponse* response);
 
 private:
     UPROPERTY(meta = (BindWidget))
-        class UButton* m_UButtonTest;
+        class UButton* m_ButtonTest{nullptr};
     UPROPERTY(meta = (BindWidget))
-        class UImage* m_UImageTest;
+        class UImage* m_ImageTest{ nullptr };
+    UPROPERTY(meta = (BindWidget))
+        class UEditableTextBox* m_EditableTextBox{ nullptr };
 };

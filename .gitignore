@@ -45,6 +45,7 @@ myprotolib/x64/
 myprotolib/.vs/
 myprotolib/Debug/
 myprotolib/lib/
+proto/myproto1/
 
 # ThirdParty
 ThirdParty/Asio/

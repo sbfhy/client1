@@ -16,13 +16,5 @@
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "CommonLibs",
-			"Enabled": false
-		},
-		{
-			"Name": "UESVON",
-			"Enabled": true
-		}
 	]
 }

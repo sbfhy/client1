@@ -5,50 +5,46 @@
 #include "Components/Widget.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
+#include "Components/EditableTextBox.h"
 #include "Base/Log/Logger.h"
 #include "System/Subsystem/MgrMessage.h"
-#include <pb/sudoku.pb.h>
+#include "pb/service/c2g_user.pb.h"
+#include "Network/service/c2g_userloginservice.h"
 
 void UTestUI::NativeConstruct()
 {
     Super::NativeConstruct();
-    if (m_UButtonTest != nullptr)
+    if (m_ButtonTest != nullptr)
     {
-        m_UButtonTest->OnClicked.AddDynamic(this, &UTestUI::onButtonTest);
+        m_ButtonTest->OnClicked.AddDynamic(this, &UTestUI::onButtonTest);
     }
-    LLOG_UI("");
 }
 
 void UTestUI::onButtonTest()
 {
-    LLOG_UI("点击按钮");
-    if (m_UImageTest->GetVisibility() == ESlateVisibility::Hidden)
-    {
-        m_UImageTest->SetVisibility(ESlateVisibility::Visible);
-    }
-    else
-    {
-        m_UImageTest->SetVisibility(ESlateVisibility::Hidden);
-    }
+    if (!m_ImageTest || !m_EditableTextBox) return;
+
+    LLOG_UI("%s", *m_EditableTextBox->GetText().ToString());
 
     UMgrMessage* mgrMessage = GetGameInstance()->GetSubsystem<UMgrMessage>();
     if (mgrMessage)
     {
-        sudoku::SudokuRequest request;
-        request.set_checkerboard("001010");
-        sudoku::SudokuResponse* response = new sudoku::SudokuResponse;
-        auto stub = static_cast<sudoku::SudokuService_Stub*>(mgrMessage->GetRpcService().GetStub("sudokuStub"));
+        CMD::C2G_UserLoginArg request;
+        uint64_t accid = FCString::Strtoui64(*m_EditableTextBox->GetText().ToString(), nullptr, 10);
+        request.set_accid(accid);
+        CMD::C2G_UserLoginRes* response = new CMD::C2G_UserLoginRes;
+        auto stub = static_cast<RPC::C2G_UserLoginService_Stub*>(mgrMessage->GetRpcService().GetStub("C2G_UserLoginService_Stub"));
         if (stub)
         {
-            LLOG_UI("调用SudokuService_Stub的Solve(), mgrAddr:%p", mgrMessage);
-            stub->Solve(nullptr, &request, response, NewCallback(this, &UTestUI::solved, response));
+            stub->C2G_UserLogin(nullptr, &request, response, NewCallback(stub, &RPC::C2G_UserLoginService_Stub::C2G_UserLogin_Solved, response));
         }
     }
+    
+    SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UTestUI::solved(sudoku::SudokuResponse* response)
-{
-    LLOG_UI("%d %s", response->solved(), *FString(response->checkerboard().c_str()));
-}
-
+//void UTestUI::solved(sudoku::SudokuResponse* response)
+//{
+//    LLOG_UI("%d %s", response->solved(), *FString(response->checkerboard().c_str()));
+//}
 
