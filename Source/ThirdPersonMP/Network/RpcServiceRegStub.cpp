@@ -1,7 +1,7 @@
 #include "RpcService.h"
 
 #include "Network/muduo/RpcChannel.h"
-#include "pb/sudoku.pb.h"
+//#include "pb/sudoku.pb.h"
 #include "Network/service/c2g_userloginservice.h"
 
 #define  ServiceRegister(NAME, TYPE)                                        \
@@ -17,7 +17,7 @@ void RpcService::RpcServiceRegStub(TSharedPtr<class RpcChannel> pRpcChannel)
     //m_MapStub["sudokuStub"] = sudokuStub;
 
     //ServiceRegister(SudokuService_Stub, sudoku::SudokuService_Stub);
-    ServiceRegister(C2G_UserLoginService_Stub, RPC::C2G_UserLoginService_Stub);
+    //ServiceRegister(C2G_UserLoginService_Stub, RPC::C2G_UserLoginService_Stub);
 
 }
 

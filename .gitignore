@@ -6,6 +6,9 @@
 *.lo
 *.o
 *.obj
+*.iobj
+*.pdb
+*.ipdb
 
 # Precompiled Headers
 *.gch
@@ -40,12 +43,13 @@ Intermediate/
 Saved/
 lib/
 
-# myprotolib/
-myprotolib/x64/
-myprotolib/.vs/
-myprotolib/Debug/
-myprotolib/lib/
-proto/myproto1/
+# proto/
+myproto/.vs
+/*
+!myproto/bin/build_proto.bat
+myproto/include/pb
+myproto/x64
+myproto/protoc_gen_rpc/x64
 
 # ThirdParty
 ThirdParty/Asio/
@@ -53,3 +57,5 @@ ThirdParty/Asio/
 # Plugins
 Plugins/CommonLibs/
 Plugins/uesvon/
+
+

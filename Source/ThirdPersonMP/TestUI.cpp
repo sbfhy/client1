@@ -8,7 +8,7 @@
 #include "Components/EditableTextBox.h"
 #include "Base/Log/Logger.h"
 #include "System/Subsystem/MgrMessage.h"
-#include "pb/service/c2g_user.pb.h"
+#include "service/c2g_user.pb.h"
 #include "Network/service/c2g_userloginservice.h"
 
 void UTestUI::NativeConstruct()
@@ -33,11 +33,11 @@ void UTestUI::onButtonTest()
         uint64_t accid = FCString::Strtoui64(*m_EditableTextBox->GetText().ToString(), nullptr, 10);
         request.set_accid(accid);
         CMD::C2G_UserLoginRes* response = new CMD::C2G_UserLoginRes;
-        auto stub = static_cast<RPC::C2G_UserLoginService_Stub*>(mgrMessage->GetRpcService().GetStub("C2G_UserLoginService_Stub"));
-        if (stub)
-        {
-            stub->C2G_UserLogin(nullptr, &request, response, NewCallback(stub, &RPC::C2G_UserLoginService_Stub::C2G_UserLogin_Solved, response));
-        }
+        //auto stub = static_cast<RPC::C2G_UserLoginService_Stub*>(mgrMessage->GetRpcService().GetStub("C2G_UserLoginService_Stub"));
+        //if (stub)
+        //{
+        //    stub->C2G_UserLogin(nullptr, &request, response, NewCallback(stub, &RPC::C2G_UserLoginService_Stub::C2G_UserLogin_Solved, response));
+        //}
     }
     
     SetVisibility(ESlateVisibility::Hidden);

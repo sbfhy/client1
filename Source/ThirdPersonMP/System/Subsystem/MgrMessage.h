@@ -7,6 +7,7 @@
 #include "Network/TcpSocket.h"
 #include "Network/RpcService.h"
 #include "Templates/SharedPointer.h"
+#include "Network/muduo/define_service.h"
 #include <map>
 
 #include "MgrMessage.generated.h"
@@ -14,6 +15,15 @@
 DECLARE_DYNAMIC_DELEGATE(FOnServerConnectedEvent);
 DECLARE_DYNAMIC_DELEGATE(FOnServerDisconnectedEvent);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnServerReceiveEvent, const TArray<uint8>&, Data);
+
+namespace muduo {
+namespace net {
+
+class RpcMessage;
+
+}   // namespace net 
+}   // namespace muduo 
+
 
 /**
  * 
@@ -23,7 +33,9 @@ class THIRDPERSONMP_API UMgrMessage : public UMgrBaseGameInstanceSubsystem
 {
     GENERATED_BODY()
 
-public:
+public:    
+    typedef ::muduo::net::RpcMessage  RpcMessage;
+
     UMgrMessage();
 
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -35,6 +47,7 @@ public:
     UFUNCTION(BlueprintCallable)
         void Disconnect();    
     void SendMessage(const std::string& msg);
+    void SendMessage(const muduo::net::RpcMessage& msg);
     
     // 供外部使用的回调函数
     UPROPERTY()
@@ -69,7 +82,20 @@ private:
 
     TSharedPtr<FTCPSocket> TCPSocketPtr;
     TSharedPtr<class RpcChannel>  m_RpcChannelPtr;
-    
+
     RpcService m_RpcService;
+
+
+    // Service相关
+public:
+    const ServicePtr GetServicePtr(ENUM::EServiceType) const;
+    const SServiceInfo* GetServiceInfo(const ::google::protobuf::Descriptor* requestDesc) const;
+    const ::google::protobuf::ServiceDescriptor* GetServiceDescriptor(ENUM::EServiceType) const;
+    const ::google::protobuf::MethodDescriptor* GetMethodDescriptor(ENUM::EServiceType, int methodIdx) const;
+private:
+    void registerService();
+private:
+    TArrayService m_arrayService;
+    TMapDescriptor2ServiceInfo m_mapRequest2ServiceInfo;
 };
 

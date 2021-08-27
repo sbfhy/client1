@@ -19,7 +19,7 @@ RpcService::~RpcService()
         }
     }
 }
-    
+
 ::google::protobuf::Service* RpcService::GetStub(const std::string& stubName)
 {
     auto itFind = m_MapStub.find(stubName);

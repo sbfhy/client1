@@ -11,9 +11,11 @@
 #include "Kismet/BlueprintPlatformLibrary.h"
 #include "Base/Log/Logger.h"
 #include "Network/muduo/RpcChannel.h"
+#include "message/common/rpc.pb.h"
 
 const float FIXED_DELTA_TIME = 1.0f;
 const char rpctag[] = "RPC0";
+
 
 UMgrMessage::UMgrMessage()
     : m_RpcChannelPtr(MakeShareable(new RpcChannel(this)))
@@ -152,3 +154,74 @@ void UMgrMessage::SendMessage(const std::string& msg)
     LLOG_NET(" %s, size:%u", *FString(msg.c_str()), msg.size());
     InternalSendPbcFunc(msg);
 }
+
+void UMgrMessage::SendMessage(const muduo::net::RpcMessage& msg)
+{
+    const std::string msgStr = msg.SerializeAsString();
+    SendMessage(msgStr);
+}
+
+
+void UMgrMessage::registerService()
+{
+    m_arrayService.fill(nullptr);
+    m_mapRequest2ServiceInfo.clear();
+
+    for (int serviceType = ENUM::SERVICETYPE_MIN + 1; serviceType < ENUM::SERVICETYPE_MAX; ++serviceType)
+    {
+        std::string serviceTypeName = "RPC::" + ENUM::EServiceType_Name(serviceType);
+        //ServicePtr ptrService = ServicePtr(MgrDynamicFactory::Instance().CreateService(serviceTypeName));
+        ServicePtr ptrService = nullptr;
+        // if (ENUM::EServiceType_IsValid(serviceType) && !ptrService)
+        // {
+        //     {LDBG("M_NET") << serviceTypeName << " 未注册";}
+        // }
+        if (!ptrService) continue;
+        const auto* serviceDesc = ptrService->GetDescriptor();
+        if (!serviceDesc) continue;
+
+        m_arrayService.at(serviceType) = ptrService;
+
+        for (int i = 0; i < serviceDesc->method_count(); ++i)
+        {
+            const auto* requestDesc = ptrService->GetRequestPrototype(serviceDesc->method(i)).GetDescriptor();
+            if (!requestDesc) continue;
+            m_mapRequest2ServiceInfo[requestDesc] = SServiceInfo{
+                                                        static_cast<ENUM::EServiceType>(serviceType),
+                                                        i
+                                                    };
+            //{LDBG("M_NET") << "[service-注册method]" << serviceTypeName << ", " << serviceDesc->method(i)->name(); }
+        }
+    }
+}
+
+const ServicePtr UMgrMessage::GetServicePtr(ENUM::EServiceType serviceType) const
+{
+    if (!ENUM::EServiceType_IsValid(serviceType))
+        return nullptr;
+    return m_arrayService.at(serviceType);
+}
+
+const SServiceInfo* UMgrMessage::GetServiceInfo(const ::google::protobuf::Descriptor* requestDesc) const
+{
+    const auto itFind = m_mapRequest2ServiceInfo.find(requestDesc);
+    if (itFind == m_mapRequest2ServiceInfo.end())
+        return nullptr;
+    return &itFind->second;
+}
+
+const ::google::protobuf::ServiceDescriptor* UMgrMessage::GetServiceDescriptor(ENUM::EServiceType serviceType) const
+{
+    const auto ptr = GetServicePtr(serviceType);
+    if (!ptr) return nullptr;
+    return ptr->GetDescriptor();
+}
+
+const ::google::protobuf::MethodDescriptor* UMgrMessage::GetMethodDescriptor(ENUM::EServiceType serviceType, int methodIdx) const
+{
+    const auto serviceDesc = GetServiceDescriptor(serviceType);
+    if (!serviceDesc) return nullptr;
+    return serviceDesc->method(methodIdx);
+}
+
+

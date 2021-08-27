@@ -10,7 +10,7 @@ public class ThirdPersonMP : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PrivateIncludePaths.Add(ModuleDirectory);
-        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "../../proto/include"));
+        PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "../../myproto/include"));
 
         string libPath = Path.Combine(ModuleDirectory, "../../lib");
         PublicAdditionalLibraries.Add(Path.Combine(libPath, "libprotobuf.lib"));

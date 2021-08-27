@@ -1,4 +1,4 @@
-#include "pb/service/c2g_user.pb.h"
+#include "service/c2g_user.pb.h"
 
 #define PROTOBUF_NAMESPACE_ID google::protobuf
 

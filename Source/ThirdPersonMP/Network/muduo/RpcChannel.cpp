@@ -4,17 +4,24 @@
 #include "RpcCodec.h"
 #include "System/Subsystem/MgrMessage.h"
 #include "Base/Log/Logger.h"
-#include <pb/rpc.pb.h>
+#include "message/common/rpc.pb.h"
+#include "Network/muduo/define_service.h"
+
+#include "service/service_include.pb.h"
+#include "service/c2g_user.pb.h"
+#include <google/protobuf/descriptor.h>
 
 using namespace muduo::net;
 
 RpcChannel::RpcChannel()
 {
+    LLOG_NET("%s %p", *FString("ctor RpcChannel"), this);
 }
 
-RpcChannel::RpcChannel(UMgrMessage* pMgrMessage)
+RpcChannel::RpcChannel(UMgrMessage* pMgrMessage) 
     : m_pMgrMessage(pMgrMessage)
 {
+    RpcMessage msg;
     LLOG_NET("%s %p", *FString("ctor RpcChannel"), this);
 }
 
@@ -22,68 +29,200 @@ RpcChannel::~RpcChannel()
 {
 }
 
-void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor* method,
-                            ::google::protobuf::RpcController* controller,
-                            const ::google::protobuf::Message* request,
-                            ::google::protobuf::Message* response,
-                            ::google::protobuf::Closure* done)
-{
-    RpcMessage message;
-    message.set_type(MSGTYPE_REQUEST);
-    message.set_id(m_id);
-    message.set_service(method->service()->full_name());
-    message.set_method(method->index());
-    message.set_request(request->SerializeAsString()); // FIXME: error check
-
-    OutstandingCall out = { response, done };
-    m_outstandings[m_id++] = out;
-
-    LLOG_NET("%llu, service:%s, method:%d, request:%s, isNull:%d, mgrAddr:%p", message.id(), *FString(message.service().c_str()), message.method(), *FString(message.request().c_str()), m_pMgrMessage==nullptr, m_pMgrMessage);
-
-    if (m_pMgrMessage)
-    {
-        const std::string msgStr = message.SerializeAsString();
-
-
-        m_pMgrMessage->SendMessage(msgStr);
-        //m_pMgrMessage->SendMessage(std::string("test ----  "));
-    }
-}
+//void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor* method,
+//                            ::google::protobuf::RpcController* controller,
+//                            const ::google::protobuf::Message* request,
+//                            ::google::protobuf::Message* response,
+//                            ::google::protobuf::Closure* done)
+//{
+//    RpcMessage message;
+//    message.set_type(MSGTYPE_REQUEST);
+//    message.set_id(m_id);
+//    message.set_service(method->service()->full_name());
+//    message.set_method(method->index());
+//    message.set_request(request->SerializeAsString()); // FIXME: error check
+//
+//    OutstandingCall out = { response, done };
+//    m_outstandings[m_id++] = out;
+//
+//    LLOG_NET("request:%s", *FString(request->DebugString().c_str()));
+//
+//    if (m_pMgrMessage)
+//    {
+//        const std::string msgStr = message.SerializeAsString();
+//        m_pMgrMessage->SendMessage(msgStr);
+//    }
+//}
 
 void RpcChannel::OnMessage(const TArray<uint8>& Data)
 {
-    LLOG_NET(" %s", *FString(reinterpret_cast<const char*>(Data.GetData())));
-    RpcMessage msg;
+    muduo::net::RpcMessage msg;
     msg.ParseFromArray(Data.GetData(), Data.Num());
-    LLOG_NET(" %s", *FString(msg.DebugString().c_str()));
 
     if (msg.type() == MSGTYPE_RESPONSE)
     {
-        OutstandingCall out = { nullptr, nullptr };
-        uint64_t id = msg.id();
-        auto itFind = m_outstandings.find(id);
-        if (itFind != m_outstandings.end())
-        {
-            out = itFind->second;
-            m_outstandings.erase(itFind);
-        }
-        else
-        {
-            // ERROR
-        }
+        //OutstandingCall out;
+        //uint64_t id = msg.id();
+        //auto itFind = m_outstandings.find(id);
+        //if (itFind != m_outstandings.end())
+        //{
+        //    out = itFind->second;
+        //    m_outstandings.erase(itFind);
+        //}
+        //else
+        //{
+        //    // ERROR
+        //}
 
-        if (out.response)
-        {
-            TSharedPtr<google::protobuf::Message> response(out.response);
-            out.response->ParseFromString(msg.response());
-            if (out.done)
-            {
-                out.done->Run();
-            }
-        }
+        //if (out.response)
+        //{
+        //    MessagePtr response(out.response);
+        //    out.response->ParseFromString(msg.response());
+        //    LLOG_NET("%s", *FString(out.response->DebugString().c_str()));
+        //    if (out.done)
+        //    {
+        //        out.done->Run();
+        //    }
+        //}
+
+        stubHandleResponseMsg(msg);
     }
     else if (msg.type() == MSGTYPE_REQUEST)
     {
-        // TODO 
+        serviceHandleRequestMsg(msg);
     }
 }
+
+void RpcChannel::serviceHandleRequestMsg(const muduo::net::RpcMessage& message) // Service处理request消息
+{
+    if (!m_pMgrMessage) return;
+
+    ErrorCode errorCode = ERR_NO_ERROR;
+    auto funcErrorCode = [&]()
+    {
+        if (errorCode != ERR_NO_ERROR) // 告诉请求方处理request时出现错误
+        {
+            muduo::net::RpcMessage response;
+            response.set_type(MSGTYPE_RESPONSE);
+            response.set_id(message.id());
+            response.set_error(errorCode);
+            m_pMgrMessage->SendMessage(response);
+        }
+    };
+
+    ServicePtr pService = m_pMgrMessage->GetServicePtr(message.service());
+    if (!pService)
+    {
+        errorCode = ERR_NO_SERVICE;
+        return funcErrorCode();
+    }
+    const google::protobuf::ServiceDescriptor* desc = pService->GetDescriptor();
+    const google::protobuf::MethodDescriptor* method = desc->method(message.method());
+    if (!method)
+    {
+        errorCode = ERR_NO_METHOD;
+        return funcErrorCode();
+    }
+
+    // FIXME: can we move deserialization to other thread?
+    ::google::protobuf::MessagePtr request(pService->GetRequestPrototype(method).New());
+    if (!request->ParseFromString(message.request()))
+    {
+        errorCode = ERR_WRONG_PROTO;
+        return funcErrorCode();
+    }
+    // {LDBG("M_NET") << request->ShortDebugString();}
+
+    int64_t id = message.id(); (void)id;
+    ::google::protobuf::MessagePtr response;
+
+    // 如果response类型是EmptyResponse，就不发回包
+    if (&pService->GetResponsePrototype(method) != &CMD::EmptyResponse::default_instance())
+    {
+        response = ::google::protobuf::MessagePtr(pService->GetResponsePrototype(method).New());
+    }
+
+    // 调用处理函数
+    pService->CallMethod(method, request, response);
+
+    if (response)                               // FIXME: delay response
+    {
+        //m_pMgrMessage->SendMessage(response);     // 发送回包
+    }
+
+    funcErrorCode();
+}
+
+void RpcChannel::stubHandleResponseMsg(const muduo::net::RpcMessage& message)    // Stub处理response消息
+{
+    if (!m_pMgrMessage || message.response() == "")
+        return;
+    QWORD id = message.id();
+
+    OutstandingCall out;
+    bool found = false;
+
+    const auto it = m_outstandings.find(id);
+    if (it != m_outstandings.end())
+    {
+        out = it->second;
+        m_outstandings.erase(it);
+        found = true;
+    }
+
+    if (!found)
+    {
+        //LOG_WARN << "[处理response-没找到对应id] " << message.ShortDebugString();
+        return;
+    }
+    //if (conn_ && conn_->GetLoop())
+    //{
+    //    conn_->GetLoop()->Cancel(out.timerId);  // 删除超时回调的定时器
+    //}
+
+    const ServicePtr pService = m_pMgrMessage->GetServicePtr(out.serviceType);
+    if (!pService || !pService->GetDescriptor())
+    {
+        //LOG_WARN << "[处理response-没找到service] " << message.ShortDebugString();
+        return;
+    }
+    const auto methodDesc = pService->GetDescriptor()->method(out.methodIndex);
+    if (!methodDesc) return;
+
+    // FIXME: can we move deserialization to other thread?
+    ::google::protobuf::MessagePtr response(
+        pService->GetResponsePrototype(methodDesc).New());
+    response->ParseFromString(message.response());
+    pService->DoneCallback(methodDesc, out.request, response);  // 调用Stub中的回调
+}
+
+void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
+{
+    // FIXME: can we move serialization to IO thread? 
+    if (!m_pMgrMessage || !request) return;
+    const SServiceInfo* serviceInfo = m_pMgrMessage->GetServiceInfo(request->GetDescriptor());
+    if (!serviceInfo) return;
+
+    muduo::net::RpcMessage message;
+    message.set_type(MSGTYPE_REQUEST);
+    message.set_id(++ m_id);
+    message.set_service(static_cast<ENUM::EServiceType>(static_cast<int>(serviceInfo->serviceType) - 1));
+    message.set_method(serviceInfo->methodIndex);
+    message.set_request(request->SerializeAsString());  // FIXME: error check
+
+    OutstandingCall out = { request,
+                            serviceInfo->serviceType,
+                            serviceInfo->methodIndex,
+                            //conn_->GetLoop()->RunAfter(5.0, std::bind(&RpcChannel::requestTimeOut, shared_from_this(), id)) 
+    };
+    
+    m_outstandings[m_id] = out;
+
+    //{LDBG("M_NET") << message.ShortDebugString(); }
+    if (m_pMgrMessage)
+    {
+        const std::string msgStr = message.SerializeAsString();
+        m_pMgrMessage->SendMessage(msgStr);
+    }
+}
+
