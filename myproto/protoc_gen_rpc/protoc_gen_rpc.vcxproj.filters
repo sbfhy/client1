@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\proto\protoc_gen_rpc\cpp_service.cc" />
+    <ClCompile Include="..\proto\protoc_gen_rpc\gen.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\proto\protoc_gen_rpc\cpp_service.h" />
+  </ItemGroup>
+</Project>

@@ -41,13 +41,21 @@ Binaries/
 DerivedDataCache/
 Intermediate/
 Saved/
-lib/
+
+#lib
+!lib/libprotobuf.lib
+!lib/libprotoc.lib
+
 
 # proto/
-myproto/myprotolib/
-myproto/protoc_gen_rpc/
+myproto/myprotolib/x64
+myproto/protoc_gen_rpc/x64
 myproto/proto/
 *.pb.*
+!myproto/bin/protoc.exe
+!myproto/bin/protoc_gen_rpc.exe
+!myproto/bin/libprotobuf.dll
+!myproto/bin/libprotoc.dll
 
 
 # ThirdParty
