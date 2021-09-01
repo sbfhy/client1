@@ -44,14 +44,10 @@ Saved/
 lib/
 
 # proto/
-myproto/.vs
-myproto/bin/
-/*
-!myproto/bin/build_proto.bat
-
 myproto/myprotolib/
 myproto/protoc_gen_rpc/
 myproto/proto/
+*.pb.*
 
 
 # ThirdParty
