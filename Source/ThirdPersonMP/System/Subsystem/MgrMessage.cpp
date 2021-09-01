@@ -12,6 +12,7 @@
 #include "Base/Log/Logger.h"
 #include "Network/muduo/RpcChannel.h"
 #include "message/common/rpc.pb.h"
+#include "MgrDynamicFactory.h"
 
 const float FIXED_DELTA_TIME = 1.0f;
 const char rpctag[] = "RPC0";
@@ -136,6 +137,8 @@ void UMgrMessage::Initialize(FSubsystemCollectionBase& Collection)
     m_RpcChannelPtr->SetTCPSocketPtr(TCPSocketPtr);
     
     Connect(FString("172.26.25.15:9981"));
+
+    registerService();
 }
 
 void UMgrMessage::Deinitialize()
@@ -147,6 +150,14 @@ void UMgrMessage::Deinitialize()
     InternalSendPbcFunc = [](const std::string&) {};
 
     Super::Deinitialize();
+}
+
+void UMgrMessage::Send(const ::google::protobuf::MessagePtr& request)
+{
+    if (m_RpcChannelPtr)
+    {
+        m_RpcChannelPtr->Send(request);
+    }
 }
 
 void UMgrMessage::SendMessage(const std::string& msg)
@@ -161,17 +172,18 @@ void UMgrMessage::SendMessage(const muduo::net::RpcMessage& msg)
     SendMessage(msgStr);
 }
 
-
 void UMgrMessage::registerService()
 {
     m_arrayService.fill(nullptr);
     m_mapRequest2ServiceInfo.clear();
 
+    LLOG_NET("");
     for (int serviceType = ENUM::SERVICETYPE_MIN + 1; serviceType < ENUM::SERVICETYPE_MAX; ++serviceType)
     {
         std::string serviceTypeName = "RPC::" + ENUM::EServiceType_Name(serviceType);
-        //ServicePtr ptrService = ServicePtr(MgrDynamicFactory::Instance().CreateService(serviceTypeName));
-        ServicePtr ptrService = nullptr;
+        ServicePtr ptrService = ServicePtr( static_cast<muduo::net::Service*>(
+                                            MgrDynamicFactory::Instance().CreateService(serviceTypeName, this)) );
+        //ServicePtr ptrService = nullptr;
         // if (ENUM::EServiceType_IsValid(serviceType) && !ptrService)
         // {
         //     {LDBG("M_NET") << serviceTypeName << " 未注册";}
@@ -190,7 +202,7 @@ void UMgrMessage::registerService()
                                                         static_cast<ENUM::EServiceType>(serviceType),
                                                         i
                                                     };
-            //{LDBG("M_NET") << "[service-注册method]" << serviceTypeName << ", " << serviceDesc->method(i)->name(); }
+            LLOG_NET("[service-注册method] %s %s", *FString(serviceTypeName.c_str()), *FString(serviceDesc->method(i)->name().c_str()));
         }
     }
 }

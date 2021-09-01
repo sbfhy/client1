@@ -46,6 +46,8 @@ public:
         void Connect(const FString& Host);
     UFUNCTION(BlueprintCallable)
         void Disconnect();    
+    
+    void Send(const ::google::protobuf::MessagePtr& request);   // 调用RpcChannel::Send
     void SendMessage(const std::string& msg);
     void SendMessage(const muduo::net::RpcMessage& msg);
     

@@ -8,16 +8,16 @@ template <typename T>
 class ISingleton : public Noncopyable
 {
 protected:
-    //ISingleton() = default;
-    //virtual ~ISingleton() = default;
-    ISingleton()
-    {
-        UE_LOG(LogTemp, Error, TEXT("ISingleton()"));
-    }
-    virtual ~ISingleton()
-    {
-        UE_LOG(LogTemp, Error, TEXT("~ISingleton()"));
-    }
+    ISingleton() = default;
+    virtual ~ISingleton() = default;
+    //ISingleton()
+    //{
+    //    UE_LOG(LogTemp, Error, TEXT("ISingleton()"));
+    //}
+    //virtual ~ISingleton()
+    //{
+    //    UE_LOG(LogTemp, Error, TEXT("~ISingleton()"));
+    //}
 
 public:
     static T* PInstance()
@@ -29,6 +29,11 @@ public:
             UE_LOG(LogTemp, Error, TEXT("ISingleton new T, %0x"), m_pInstance);
         }
         return m_pInstance;
+    }
+
+    static T& Instance()
+    {
+        return *PInstance();
     }
 
     static void Destroy()

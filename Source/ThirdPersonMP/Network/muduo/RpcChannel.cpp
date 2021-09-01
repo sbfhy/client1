@@ -1,7 +1,5 @@
-#pragma once
-
 #include "RpcChannel.h"
-#include "RpcCodec.h"
+
 #include "System/Subsystem/MgrMessage.h"
 #include "Base/Log/Logger.h"
 #include "message/common/rpc.pb.h"
@@ -29,31 +27,6 @@ RpcChannel::~RpcChannel()
 {
 }
 
-//void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor* method,
-//                            ::google::protobuf::RpcController* controller,
-//                            const ::google::protobuf::Message* request,
-//                            ::google::protobuf::Message* response,
-//                            ::google::protobuf::Closure* done)
-//{
-//    RpcMessage message;
-//    message.set_type(MSGTYPE_REQUEST);
-//    message.set_id(m_id);
-//    message.set_service(method->service()->full_name());
-//    message.set_method(method->index());
-//    message.set_request(request->SerializeAsString()); // FIXME: error check
-//
-//    OutstandingCall out = { response, done };
-//    m_outstandings[m_id++] = out;
-//
-//    LLOG_NET("request:%s", *FString(request->DebugString().c_str()));
-//
-//    if (m_pMgrMessage)
-//    {
-//        const std::string msgStr = message.SerializeAsString();
-//        m_pMgrMessage->SendMessage(msgStr);
-//    }
-//}
-
 void RpcChannel::OnMessage(const TArray<uint8>& Data)
 {
     muduo::net::RpcMessage msg;
@@ -61,30 +34,6 @@ void RpcChannel::OnMessage(const TArray<uint8>& Data)
 
     if (msg.type() == MSGTYPE_RESPONSE)
     {
-        //OutstandingCall out;
-        //uint64_t id = msg.id();
-        //auto itFind = m_outstandings.find(id);
-        //if (itFind != m_outstandings.end())
-        //{
-        //    out = itFind->second;
-        //    m_outstandings.erase(itFind);
-        //}
-        //else
-        //{
-        //    // ERROR
-        //}
-
-        //if (out.response)
-        //{
-        //    MessagePtr response(out.response);
-        //    out.response->ParseFromString(msg.response());
-        //    LLOG_NET("%s", *FString(out.response->DebugString().c_str()));
-        //    if (out.done)
-        //    {
-        //        out.done->Run();
-        //    }
-        //}
-
         stubHandleResponseMsg(msg);
     }
     else if (msg.type() == MSGTYPE_REQUEST)
@@ -198,12 +147,12 @@ void RpcChannel::stubHandleResponseMsg(const muduo::net::RpcMessage& message)   
 
 void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
 {
-    // FIXME: can we move serialization to IO thread? 
+    //// FIXME: can we move serialization to IO thread? 
     if (!m_pMgrMessage || !request) return;
     const SServiceInfo* serviceInfo = m_pMgrMessage->GetServiceInfo(request->GetDescriptor());
     if (!serviceInfo) return;
 
-    muduo::net::RpcMessage message;
+    RpcMessage message;
     message.set_type(MSGTYPE_REQUEST);
     message.set_id(++ m_id);
     message.set_service(static_cast<ENUM::EServiceType>(static_cast<int>(serviceInfo->serviceType) - 1));
@@ -218,7 +167,7 @@ void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
     
     m_outstandings[m_id] = out;
 
-    //{LDBG("M_NET") << message.ShortDebugString(); }
+    LLOG_NET("service:%d, method:%d", static_cast<int>(serviceInfo->serviceType) - 1, serviceInfo->methodIndex);
     if (m_pMgrMessage)
     {
         const std::string msgStr = message.SerializeAsString();

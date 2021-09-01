@@ -45,11 +45,14 @@ lib/
 
 # proto/
 myproto/.vs
+myproto/bin/
 /*
 !myproto/bin/build_proto.bat
-myproto/include/pb
-myproto/x64
-myproto/protoc_gen_rpc/x64
+
+myproto/myprotolib/
+myproto/protoc_gen_rpc/
+myproto/proto/
+
 
 # ThirdParty
 ThirdParty/Asio/

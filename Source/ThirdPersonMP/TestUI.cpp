@@ -29,15 +29,10 @@ void UTestUI::onButtonTest()
     UMgrMessage* mgrMessage = GetGameInstance()->GetSubsystem<UMgrMessage>();
     if (mgrMessage)
     {
-        CMD::C2G_UserLoginArg request;
+        std::shared_ptr<CMD::C2G_UserLoginArg> request = std::make_shared<CMD::C2G_UserLoginArg>();
         uint64_t accid = FCString::Strtoui64(*m_EditableTextBox->GetText().ToString(), nullptr, 10);
-        request.set_accid(accid);
-        CMD::C2G_UserLoginRes* response = new CMD::C2G_UserLoginRes;
-        //auto stub = static_cast<RPC::C2G_UserLoginService_Stub*>(mgrMessage->GetRpcService().GetStub("C2G_UserLoginService_Stub"));
-        //if (stub)
-        //{
-        //    stub->C2G_UserLogin(nullptr, &request, response, NewCallback(stub, &RPC::C2G_UserLoginService_Stub::C2G_UserLogin_Solved, response));
-        //}
+        request->set_accid(accid);
+        mgrMessage->Send(request);
     }
     
     SetVisibility(ESlateVisibility::Hidden);

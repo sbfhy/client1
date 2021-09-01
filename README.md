@@ -78,9 +78,10 @@ PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "../../proto/include"));
 
 # 待解决
 ```
-把proto lib库项目集成到主项目里，  
+把proto lib库项目集成到主项目里，Generate问题，
 ThirdPersonMP.uproject 打开时的问题，   
-
+静态库动态库问题，两个静态库链接问题(按理应该链接一个就好了)，  
+Navmesh插件处理，插件整合，  
 ```
 
 

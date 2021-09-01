@@ -8,7 +8,7 @@
 ////
 //// This is a public header file, it must only include public header files.
 //
-//#pragma once
+#pragma once
 //
 //#include <ProtobufCodecLite.h>
 //
