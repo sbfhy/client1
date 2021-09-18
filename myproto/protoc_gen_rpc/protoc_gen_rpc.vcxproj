@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\proto\protoc_gen_rpc\cpp_service.cc" />
-    <ClCompile Include="..\proto\protoc_gen_rpc\gen.cc" />
+    <ClInclude Include="..\proto\protoc_gen_rpc\cpp_service.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\proto\protoc_gen_rpc\cpp_service.h" />
+    <ClCompile Include="..\proto\protoc_gen_rpc\cpp_service.cc" />
+    <ClCompile Include="..\proto\protoc_gen_rpc\gen.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

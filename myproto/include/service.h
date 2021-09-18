@@ -58,6 +58,8 @@ class Service : noncopyable
   // Get the ServiceDescriptor describing this service and its methods.
   virtual const ::google::protobuf::ServiceDescriptor* GetDescriptor() = 0;
 
+  virtual void SetRpcChannel(std::shared_ptr<muduo::net::RpcChannelBase> pChannel) {}
+
   // Call a method of the service specified by MethodDescriptor.  This is
   // normally implemented as a simple switch() that calls the standard
   // definitions of the service's methods.

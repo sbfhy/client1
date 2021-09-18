@@ -20,13 +20,11 @@ typedef std::shared_ptr<Message> MessagePtr;
 }   // namespace google
 
 
-namespace muduo {
-namespace net {
+namespace CMD {
 
 class RpcMessage;
 
-}   // namespace net 
-}   // namespace muduo 
+}   // namespace CMD 
 
 
 class UMgrMessage;
@@ -35,7 +33,7 @@ class UMgrMessage;
 class RpcChannel : public muduo::net::RpcChannelBase
                  , public std::enable_shared_from_this<RpcChannel>
 {
-    typedef ::muduo::net::RpcMessage  RpcMessage;
+    typedef CMD::RpcMessage  RpcMessage;
 
 public:
     RpcChannel();
@@ -51,8 +49,8 @@ public:
     void Send(const ::google::protobuf::MessagePtr& request);
 
 private:
-    void serviceHandleRequestMsg(const muduo::net::RpcMessage& message);    // Service处理request消息
-    void stubHandleResponseMsg(const muduo::net::RpcMessage& message);      // Stub处理response消息
+    void serviceHandleRequestMsg(const RpcMessage& message);    // Service处理request消息
+    void stubHandleResponseMsg(const RpcMessage& message);      // Stub处理response消息
 
 private:
     struct OutstandingCall

@@ -10,6 +10,7 @@
 #include <google/protobuf/descriptor.h>
 
 using namespace muduo::net;
+using namespace CMD;
 
 RpcChannel::RpcChannel()
 {
@@ -29,7 +30,7 @@ RpcChannel::~RpcChannel()
 
 void RpcChannel::OnMessage(const TArray<uint8>& Data)
 {
-    muduo::net::RpcMessage msg;
+    RpcMessage msg;
     msg.ParseFromArray(Data.GetData(), Data.Num());
 
     if (msg.type() == MSGTYPE_RESPONSE)
@@ -42,7 +43,7 @@ void RpcChannel::OnMessage(const TArray<uint8>& Data)
     }
 }
 
-void RpcChannel::serviceHandleRequestMsg(const muduo::net::RpcMessage& message) // Service处理request消息
+void RpcChannel::serviceHandleRequestMsg(const RpcMessage& message) // Service处理request消息
 {
     if (!m_pMgrMessage) return;
 
@@ -51,7 +52,7 @@ void RpcChannel::serviceHandleRequestMsg(const muduo::net::RpcMessage& message) 
     {
         if (errorCode != ERR_NO_ERROR) // 告诉请求方处理request时出现错误
         {
-            muduo::net::RpcMessage response;
+            RpcMessage response;
             response.set_type(MSGTYPE_RESPONSE);
             response.set_id(message.id());
             response.set_error(errorCode);
@@ -86,7 +87,7 @@ void RpcChannel::serviceHandleRequestMsg(const muduo::net::RpcMessage& message) 
     ::google::protobuf::MessagePtr response;
 
     // 如果response类型是EmptyResponse，就不发回包
-    if (&pService->GetResponsePrototype(method) != &CMD::EmptyResponse::default_instance())
+    if (&pService->GetResponsePrototype(method) != &EmptyResponse::default_instance())
     {
         response = ::google::protobuf::MessagePtr(pService->GetResponsePrototype(method).New());
     }
@@ -94,7 +95,7 @@ void RpcChannel::serviceHandleRequestMsg(const muduo::net::RpcMessage& message) 
     // 调用处理函数
     pService->CallMethod(method, request, response);
 
-    if (response)                               // FIXME: delay response
+    if (response)                                   // FIXME: delay response
     {
         //m_pMgrMessage->SendMessage(response);     // 发送回包
     }
@@ -102,7 +103,7 @@ void RpcChannel::serviceHandleRequestMsg(const muduo::net::RpcMessage& message) 
     funcErrorCode();
 }
 
-void RpcChannel::stubHandleResponseMsg(const muduo::net::RpcMessage& message)    // Stub处理response消息
+void RpcChannel::stubHandleResponseMsg(const RpcMessage& message)    // Stub处理response消息
 {
     if (!m_pMgrMessage || message.response() == "")
         return;
@@ -157,6 +158,9 @@ void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
     message.set_id(++ m_id);
     message.set_service(static_cast<ENUM::EServiceType>(static_cast<int>(serviceInfo->serviceType) - 1));
     message.set_method(serviceInfo->methodIndex);
+    message.set_from(ENUM::ESERVERTYPE_CLIENT);
+    message.set_to(serviceInfo->to);
+    message.set_accid(m_pMgrMessage->GetAccid());
     message.set_request(request->SerializeAsString());  // FIXME: error check
 
     OutstandingCall out = { request,
@@ -167,7 +171,7 @@ void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
     
     m_outstandings[m_id] = out;
 
-    LLOG_NET("service:%d, method:%d", static_cast<int>(serviceInfo->serviceType) - 1, serviceInfo->methodIndex);
+    LLOG_NET("service:%d, method:%d", serviceInfo->serviceType, serviceInfo->methodIndex);
     if (m_pMgrMessage)
     {
         const std::string msgStr = message.SerializeAsString();

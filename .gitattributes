@@ -6,3 +6,4 @@ myproto/bin/protoc_gen_rpc.exe filter=lfs diff=lfs merge=lfs -text
 myproto/bin/libprotobuf.dll filter=lfs diff=lfs merge=lfs -text
 myproto/bin/libprotoc.dll filter=lfs diff=lfs merge=lfs -text
 content/*.uasset filter=lfs diff=lfs merge=lfs -text
+lib/myprotolib.lib filter=lfs diff=lfs merge=lfs -text

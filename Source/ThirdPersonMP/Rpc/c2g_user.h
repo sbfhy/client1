@@ -8,16 +8,16 @@ class UMgrMessage;
 
 namespace RPC {
 
-class C2G_UserLoginService_Stub : public CreateDynamicService<C2G_UserLoginService_Stub, UMgrMessage>
-                                , public CMD::C2G_UserLoginService_Stub
+class C2G_UserService_Stub : public CreateDynamicService<C2G_UserService_Stub, UMgrMessage>
+                           , public CMD::C2G_UserService_Stub
 {
 public:
-    C2G_UserLoginService_Stub();
-    C2G_UserLoginService_Stub(UMgrMessage*);
+    C2G_UserService_Stub();
+    C2G_UserService_Stub(UMgrMessage*);
 
-    virtual void C2G_UserLogin_DoneCb(const ::CMD::C2G_UserLoginArgPtr& request,
-                                      const ::CMD::C2G_UserLoginResPtr& response) override;
-    virtual void C2G_UserLogin_TimeOut(const ::CMD::C2G_UserLoginArgPtr& request) override;
+    virtual void C2G_UserSignIn_DoneCb(const ::CMD::C2G_UserSignInArgPtr& request,
+                                       const ::CMD::C2G_UserSignInResPtr& response) override;
+    virtual void C2G_UserSignIn_TimeOut(const ::CMD::C2G_UserSignInArgPtr& request) override;
 
 };
 

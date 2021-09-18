@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "System/Subsystem/MgrBaseGameInstanceSubsystem.h"
 #include "Network/TcpSocket.h"
-#include "Network/RpcService.h"
 #include "Templates/SharedPointer.h"
 #include "Network/muduo/define_service.h"
 #include <map>
@@ -16,13 +15,9 @@ DECLARE_DYNAMIC_DELEGATE(FOnServerConnectedEvent);
 DECLARE_DYNAMIC_DELEGATE(FOnServerDisconnectedEvent);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnServerReceiveEvent, const TArray<uint8>&, Data);
 
-namespace muduo {
-namespace net {
-
-class RpcMessage;
-
-}   // namespace net 
-}   // namespace muduo 
+namespace CMD {
+    class RpcMessage;
+}   // CMD 
 
 
 /**
@@ -34,7 +29,7 @@ class THIRDPERSONMP_API UMgrMessage : public UMgrBaseGameInstanceSubsystem
     GENERATED_BODY()
 
 public:    
-    typedef ::muduo::net::RpcMessage  RpcMessage;
+    typedef CMD::RpcMessage  RpcMessage;
 
     UMgrMessage();
 
@@ -49,7 +44,7 @@ public:
     
     void Send(const ::google::protobuf::MessagePtr& request);   // 调用RpcChannel::Send
     void SendMessage(const std::string& msg);
-    void SendMessage(const muduo::net::RpcMessage& msg);
+    void SendMessage(const CMD::RpcMessage& msg);
     
     // 供外部使用的回调函数
     UPROPERTY()
@@ -61,8 +56,6 @@ public:
     
     UFUNCTION()
         void TickMessageQueue(float DeltaTime);                 // 检查MessageQueue里是否有数据
-
-    RpcService& GetRpcService()  { return m_RpcService; }
 
 private:
     FDelegateHandle MessageDelegateHandler;
@@ -85,8 +78,6 @@ private:
     TSharedPtr<FTCPSocket> TCPSocketPtr;
     TSharedPtr<class RpcChannel>  m_RpcChannelPtr;
 
-    RpcService m_RpcService;
-
 
     // Service相关
 public:
@@ -94,10 +85,14 @@ public:
     const SServiceInfo* GetServiceInfo(const ::google::protobuf::Descriptor* requestDesc) const;
     const ::google::protobuf::ServiceDescriptor* GetServiceDescriptor(ENUM::EServiceType) const;
     const ::google::protobuf::MethodDescriptor* GetMethodDescriptor(ENUM::EServiceType, int methodIdx) const;
+    QWORD GetAccid() const { return m_accid; }
+    void SetAccid(QWORD accid) { m_accid = accid; }
 private:
     void registerService();
+    void getServiceFromTo(const std::string& serviceTypeName, ENUM::EServerType &from, ENUM::EServerType &to);
 private:
     TArrayService m_arrayService;
     TMapDescriptor2ServiceInfo m_mapRequest2ServiceInfo;
+    QWORD m_accid{ 0 };
 };
 

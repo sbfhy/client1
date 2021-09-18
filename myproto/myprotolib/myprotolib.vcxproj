@@ -18,6 +18,44 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\down_pointer_cast.h" />
+    <ClInclude Include="..\include\dynamic_object.h" />
+    <ClInclude Include="..\include\message\common\event.pb.h" />
+    <ClInclude Include="..\include\message\common\event_enum.pb.h" />
+    <ClInclude Include="..\include\message\common\rpc.pb.h" />
+    <ClInclude Include="..\include\message\scene.pb.h" />
+    <ClInclude Include="..\include\message\test\rpcservice.pb.h" />
+    <ClInclude Include="..\include\message\test\sudoku.pb.h" />
+    <ClInclude Include="..\include\message\test\test.pb.h" />
+    <ClInclude Include="..\include\message\test\xCmd.pb.h" />
+    <ClInclude Include="..\include\message\user.pb.h" />
+    <ClInclude Include="..\include\noncopyable.h" />
+    <ClInclude Include="..\include\service.h" />
+    <ClInclude Include="..\include\service\c2a_user.pb.h" />
+    <ClInclude Include="..\include\service\c2g_scene.pb.h" />
+    <ClInclude Include="..\include\service\c2g_user.pb.h" />
+    <ClInclude Include="..\include\service\g2c_scene.pb.h" />
+    <ClInclude Include="..\include\service\service_enum.pb.h" />
+    <ClInclude Include="..\include\service\service_include.pb.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\include\message\common\event.pb.cc" />
+    <ClCompile Include="..\include\message\common\event_enum.pb.cc" />
+    <ClCompile Include="..\include\message\common\rpc.pb.cc" />
+    <ClCompile Include="..\include\message\scene.pb.cc" />
+    <ClCompile Include="..\include\message\test\rpcservice.pb.cc" />
+    <ClCompile Include="..\include\message\test\sudoku.pb.cc" />
+    <ClCompile Include="..\include\message\test\test.pb.cc" />
+    <ClCompile Include="..\include\message\test\xCmd.pb.cc" />
+    <ClCompile Include="..\include\message\user.pb.cc" />
+    <ClCompile Include="..\include\service\c2a_user.pb.cc" />
+    <ClCompile Include="..\include\service\c2g_scene.pb.cc" />
+    <ClCompile Include="..\include\service\c2g_user.pb.cc" />
+    <ClCompile Include="..\include\service\g2c_scene.pb.cc" />
+    <ClCompile Include="..\include\service\service_enum.pb.cc" />
+    <ClCompile Include="..\include\service\service_include.pb.cc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -142,38 +180,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\include\message\common\rpc.pb.cc" />
-    <ClCompile Include="..\include\message\scene.pb.cc" />
-    <ClCompile Include="..\include\message\test\rpcservice.pb.cc" />
-    <ClCompile Include="..\include\message\test\sudoku.pb.cc" />
-    <ClCompile Include="..\include\message\test\test.pb.cc" />
-    <ClCompile Include="..\include\message\test\xCmd.pb.cc" />
-    <ClCompile Include="..\include\message\user.pb.cc" />
-    <ClCompile Include="..\include\service\c2g_scene.pb.cc" />
-    <ClCompile Include="..\include\service\c2g_user.pb.cc" />
-    <ClCompile Include="..\include\service\g2c_scene.pb.cc" />
-    <ClCompile Include="..\include\service\service_enum.pb.cc" />
-    <ClCompile Include="..\include\service\service_include.pb.cc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\include\down_pointer_cast.h" />
-    <ClInclude Include="..\include\dynamic_object.h" />
-    <ClInclude Include="..\include\message\common\rpc.pb.h" />
-    <ClInclude Include="..\include\message\scene.pb.h" />
-    <ClInclude Include="..\include\message\test\rpcservice.pb.h" />
-    <ClInclude Include="..\include\message\test\sudoku.pb.h" />
-    <ClInclude Include="..\include\message\test\test.pb.h" />
-    <ClInclude Include="..\include\message\test\xCmd.pb.h" />
-    <ClInclude Include="..\include\message\user.pb.h" />
-    <ClInclude Include="..\include\noncopyable.h" />
-    <ClInclude Include="..\include\service.h" />
-    <ClInclude Include="..\include\service\c2g_scene.pb.h" />
-    <ClInclude Include="..\include\service\c2g_user.pb.h" />
-    <ClInclude Include="..\include\service\g2c_scene.pb.h" />
-    <ClInclude Include="..\include\service\service_enum.pb.h" />
-    <ClInclude Include="..\include\service\service_include.pb.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

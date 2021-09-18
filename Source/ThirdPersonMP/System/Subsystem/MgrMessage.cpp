@@ -20,7 +20,6 @@ const char rpctag[] = "RPC0";
 
 UMgrMessage::UMgrMessage()
     : m_RpcChannelPtr(MakeShareable(new RpcChannel(this)))
-    , m_RpcService(m_RpcChannelPtr)
 {
     LLOG_NET("%p", this);
     InternalConnectFunc = [](const FString&) {};
@@ -166,7 +165,7 @@ void UMgrMessage::SendMessage(const std::string& msg)
     InternalSendPbcFunc(msg);
 }
 
-void UMgrMessage::SendMessage(const muduo::net::RpcMessage& msg)
+void UMgrMessage::SendMessage(const CMD::RpcMessage& msg)
 {
     const std::string msgStr = msg.SerializeAsString();
     SendMessage(msgStr);
@@ -177,7 +176,6 @@ void UMgrMessage::registerService()
     m_arrayService.fill(nullptr);
     m_mapRequest2ServiceInfo.clear();
 
-    LLOG_NET("");
     for (int serviceType = ENUM::SERVICETYPE_MIN + 1; serviceType < ENUM::SERVICETYPE_MAX; ++serviceType)
     {
         std::string serviceTypeName = "RPC::" + ENUM::EServiceType_Name(serviceType);
@@ -194,13 +192,18 @@ void UMgrMessage::registerService()
 
         m_arrayService.at(serviceType) = ptrService;
 
+        ENUM::EServerType from{ ENUM::ESERVERTYPE_MIN }, to{ ENUM::ESERVERTYPE_MIN };
+        getServiceFromTo(ENUM::EServiceType_Name(serviceType), from, to);
+
         for (int i = 0; i < serviceDesc->method_count(); ++i)
         {
             const auto* requestDesc = ptrService->GetRequestPrototype(serviceDesc->method(i)).GetDescriptor();
             if (!requestDesc) continue;
             m_mapRequest2ServiceInfo[requestDesc] = SServiceInfo{
                                                         static_cast<ENUM::EServiceType>(serviceType),
-                                                        i
+                                                        i,
+                                                        from,
+                                                        to
                                                     };
             LLOG_NET("[service-注册method] %s %s", *FString(serviceTypeName.c_str()), *FString(serviceDesc->method(i)->name().c_str()));
         }
@@ -236,4 +239,23 @@ const ::google::protobuf::MethodDescriptor* UMgrMessage::GetMethodDescriptor(ENU
     return serviceDesc->method(methodIdx);
 }
 
+void UMgrMessage::getServiceFromTo(const std::string& serviceTypeName, ENUM::EServerType &from, ENUM::EServerType &to)
+{
+    static const std::map<char, ENUM::EServerType> s_mapChar2ServiceType = {
+        {'C', ENUM::ESERVERTYPE_CLIENT},
+        {'A', ENUM::ESERVERTYPE_GATESERVER},
+        {'G', ENUM::ESERVERTYPE_GAMESERVER},
+    };
+
+    auto func = [](char c, ENUM::EServerType &type)
+    {
+        auto itFind = s_mapChar2ServiceType.find(c);
+        if (itFind == s_mapChar2ServiceType.end()) return;
+        type = itFind->second;
+    };
+
+    if (serviceTypeName.size() < 3) return;
+    func(serviceTypeName[0], from);
+    func(serviceTypeName[2], to);
+}
 
