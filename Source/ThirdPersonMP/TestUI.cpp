@@ -28,7 +28,7 @@ void UTestUI::onButtonTest()
     UMgrMessage* pMgrMessage = GetGameInstance()->GetSubsystem<UMgrMessage>();
     if (pMgrMessage)
     {
-        std::shared_ptr<CMD::C2A_UserSignInArg> request = std::make_shared<CMD::C2A_UserSignInArg>();
+        CMD::C2A_UserSignInArgPtr request = std::make_shared<CMD::C2A_UserSignInArg>();
         uint64_t accid = FCString::Strtoui64(*m_EditableTextBox->GetText().ToString(), nullptr, 10);
         request->set_accid(accid);
         pMgrMessage->SetAccid(accid);

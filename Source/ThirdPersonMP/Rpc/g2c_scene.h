@@ -15,6 +15,11 @@ public:
     G2C_SceneService();
     G2C_SceneService(UMgrMessage*);
 
+    virtual void G2C_EnterScene(const ::CMD::G2C_EnterSceneArgPtr& request,
+                                const ::CMD::G2C_EnterSceneResPtr& response);
+
+private:
+    UMgrMessage* m_MgrMessage{ nullptr };
 };
 
 }   // namespace RPC

@@ -105,6 +105,7 @@ void RpcChannel::serviceHandleRequestMsg(const RpcMessage& message) // Service�
 
 void RpcChannel::stubHandleResponseMsg(const RpcMessage& message)    // Stub处理response消息
 {
+    LLOG_NET("service:%d, method:%d, id:%llu, accid:%llu, from:%d, to:%d", message.service(), message.method(), message.id(), message.accid(), message.from(), message.to());
     if (!m_pMgrMessage || message.response() == "")
         return;
     QWORD id = message.id();
@@ -156,7 +157,7 @@ void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
     RpcMessage message;
     message.set_type(MSGTYPE_REQUEST);
     message.set_id(++ m_id);
-    message.set_service(static_cast<ENUM::EServiceType>(static_cast<int>(serviceInfo->serviceType) - 1));
+    message.set_service(serviceInfo->serviceType);
     message.set_method(serviceInfo->methodIndex);
     message.set_from(ENUM::ESERVERTYPE_CLIENT);
     message.set_to(serviceInfo->to);
@@ -171,7 +172,7 @@ void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
     
     m_outstandings[m_id] = out;
 
-    LLOG_NET("service:%d, method:%d", serviceInfo->serviceType, serviceInfo->methodIndex);
+    LLOG_NET("service:%d, method:%d, accid:%llu, from:%d, to:%d", serviceInfo->serviceType, serviceInfo->methodIndex, message.accid(), message.from(), message.to());
     if (m_pMgrMessage)
     {
         const std::string msgStr = message.SerializeAsString();
