@@ -24,9 +24,14 @@ namespace CMD {
  * 
  */
 UCLASS(BlueprintType)
-class THIRDPERSONMP_API UMgrMessage : public UMgrBaseGameInstanceSubsystem
+class THIRDPERSONMP_API UMgrMessage : public UMgrBaseGameInstanceSubsystem, public FTickableGameObject
 {
     GENERATED_BODY()
+
+public: // FTickableGameObject
+    virtual void Tick(float DeltaTime) override;
+    virtual bool IsTickable() const override { return !IsTemplate(); }//不是CDO才Tick，否则会Tick两次。
+    virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UMyScoreSubsystem, STATGROUP_Tickables); }
 
 public:    
     typedef CMD::RpcMessage  RpcMessage;
@@ -94,5 +99,14 @@ private:
     TArrayService m_arrayService;
     TMapDescriptor2ServiceInfo m_mapRequest2ServiceInfo;
     QWORD m_accid{ 0 };
+
+    // delay response 
+public:
+    SDelayResponse* NewDelayResponse(const SRpcChannelMethodArgs& args);
+    void DoDelayResponse(QWORD delayResponseId);
+protected:
+    // delay response
+    QWORD m_delayResponseId;
+    std::map<QWORD, SDelayResponse> m_delayResponse;
 };
 

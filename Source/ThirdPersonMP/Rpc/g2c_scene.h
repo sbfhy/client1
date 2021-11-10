@@ -16,7 +16,12 @@ public:
     G2C_SceneService(UMgrMessage*);
 
     virtual void G2C_EnterScene(const ::CMD::G2C_EnterSceneArgPtr& request,
-                                const ::CMD::G2C_EnterSceneResPtr& response);
+                                const ::CMD::EmptyResponsePtr& response,
+                                void* args);
+
+    virtual void G2C_CreatePlayerPawn(const ::CMD::G2C_CreatePlayerPawnArgPtr& request,
+                                      const ::CMD::EmptyResponsePtr& response,
+                                      void* args);
 
 private:
     UMgrMessage* m_MgrMessage{ nullptr };

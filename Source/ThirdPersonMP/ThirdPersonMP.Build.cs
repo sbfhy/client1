@@ -24,6 +24,12 @@ public class ThirdPersonMP : ModuleRules
             "HeadMountedDisplay"
         });
 
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[] {
+                "UnrealEd",
+            });
+        }
         PrivateDependencyModuleNames.AddRange(new string[] {
             "Networking",
             "Sockets",

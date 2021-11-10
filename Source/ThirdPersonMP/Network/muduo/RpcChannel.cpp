@@ -2,11 +2,12 @@
 
 #include "System/Subsystem/MgrMessage.h"
 #include "Base/Log/Logger.h"
-#include "message/common/rpc.pb.h"
 #include "Network/muduo/define_service.h"
 
 #include "service/service_include.pb.h"
+#include "message/common/rpc.pb.h"
 #include "service/c2g_user.pb.h"
+#include "service/service_enum.pb.h"
 #include <google/protobuf/descriptor.h>
 
 using namespace muduo::net;
@@ -83,7 +84,7 @@ void RpcChannel::serviceHandleRequestMsg(const RpcMessage& message) // Service�
     }
     // {LDBG("M_NET") << request->ShortDebugString();}
 
-    int64_t id = message.id(); (void)id;
+    QWORD id = message.id(); (void)id;
     ::google::protobuf::MessagePtr response;
 
     // 如果response类型是EmptyResponse，就不发回包
@@ -92,12 +93,12 @@ void RpcChannel::serviceHandleRequestMsg(const RpcMessage& message) // Service�
         response = ::google::protobuf::MessagePtr(pService->GetResponsePrototype(method).New());
     }
 
-    // 调用处理函数
-    pService->CallMethod(method, request, response);
+    SRpcChannelMethodArgs args{false, message.from(), id, message.accid() };
+    pService->CallMethod(method, request, response, &args);      // 调用处理函数
 
-    if (response)                                   // FIXME: delay response
+    if (response && !args.bDelay)
     {
-        //m_pMgrMessage->SendMessage(response);     // 发送回包
+        DoneCallback(response, id, message.accid(), message.from()); // 不延迟，直接发回包
     }
 
     funcErrorCode();
@@ -173,10 +174,31 @@ void RpcChannel::Send(const ::google::protobuf::MessagePtr& request)
     m_outstandings[m_id] = out;
 
     LLOG_NET("service:%d, method:%d, accid:%llu, from:%d, to:%d", serviceInfo->serviceType, serviceInfo->methodIndex, message.accid(), message.from(), message.to());
+    Send(message);
+}
+    
+void RpcChannel::Send(const CMD::RpcMessage& msg)
+{
     if (m_pMgrMessage)
     {
-        const std::string msgStr = message.SerializeAsString();
-        m_pMgrMessage->SendMessage(msgStr);
+        m_pMgrMessage->SendMessage(msg);
     }
+
 }
 
+void RpcChannel::DoneCallback(::google::protobuf::MessagePtr response,
+                              QWORD id,
+                              QWORD accid,
+                              ENUM::EServerType from)
+{
+    if (!response) return;
+    // FIXME: can we move serialization to IO thread?
+    RpcMessage message;
+    message.set_type(MSGTYPE_RESPONSE);
+    message.set_id(id);
+    message.set_accid(accid);
+    message.set_from(ENUM::ESERVERTYPE_CLIENT);
+    message.set_to(from);
+    message.set_response(response->SerializeAsString()); // FIXME: error check
+    Send(message);
+}

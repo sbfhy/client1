@@ -27,8 +27,11 @@ public:
 
     virtual void Tick(float DeltaSeconds) override;
 
+public:
+    void ChangeApawn(APawn*);
+    void C2G_NotifyLoadedScene();
+
 private:
-    //class Managers* m_managers = nullptr;
 };
 
 

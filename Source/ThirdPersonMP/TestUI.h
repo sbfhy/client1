@@ -22,8 +22,6 @@ private:
     UFUNCTION()
         void onButtonTest();
 
-    //void solved(sudoku::SudokuResponse* response);
-
 private:
     UPROPERTY(meta = (BindWidget))
         class UButton* m_ButtonTest{nullptr};

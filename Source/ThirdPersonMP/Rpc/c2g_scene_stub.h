@@ -8,15 +8,16 @@ class UMgrMessage;
 
 namespace RPC {
 
-class C2G_SceneEntryService_Stub : public CreateDynamicService<C2G_SceneEntryService_Stub, UMgrMessage>
-                                 , public CMD::C2G_SceneEntryService_Stub
+class C2G_SceneService_Stub : public CreateDynamicService<C2G_SceneService_Stub, UMgrMessage>
+                            , public CMD::C2G_SceneService_Stub
 {
 public:
-    C2G_SceneEntryService_Stub() {}
-    C2G_SceneEntryService_Stub(UMgrMessage*) {}
+    C2G_SceneService_Stub();
+    C2G_SceneService_Stub(UMgrMessage*);
   
-    virtual void C2G_CreateEntry(const ::CMD::C2G_CreateEntryArgPtr& request,
-                                 const ::CMD::C2G_CreateEntryResPtr& response) override;
+    virtual void C2G_NotifyLoadedScene(const ::CMD::C2G_NotifyLoadedSceneArgPtr& request,
+                                       const ::CMD::EmptyResponsePtr& response,
+                                       void* args) override;
 
 private:
     UMgrMessage* m_MgrMessage{ nullptr };

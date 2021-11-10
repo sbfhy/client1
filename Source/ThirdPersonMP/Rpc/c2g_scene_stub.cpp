@@ -4,8 +4,20 @@
 
 using namespace RPC;
 
-void C2G_SceneEntryService_Stub::C2G_CreateEntry(const ::CMD::C2G_CreateEntryArgPtr& request,
-                                                 const ::CMD::C2G_CreateEntryResPtr& response)
+C2G_SceneService_Stub::C2G_SceneService_Stub()
+{
+
+}
+
+C2G_SceneService_Stub::C2G_SceneService_Stub(UMgrMessage* pMgrMessage)
+    : m_MgrMessage(pMgrMessage)
+{
+
+}
+
+void C2G_SceneService_Stub::C2G_NotifyLoadedScene(const ::CMD::C2G_NotifyLoadedSceneArgPtr& request,
+                                                  const ::CMD::EmptyResponsePtr& response,
+                                                  void* args) 
 {
     LLOG_NET("");
 }

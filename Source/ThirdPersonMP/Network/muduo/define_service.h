@@ -9,23 +9,23 @@
 #include "Base/Define/DefineVariable.h"
 
 namespace google {
-    namespace protobuf {
+namespace protobuf {
 
-        class Service;
-        class Descriptor;
-        class Message;
+class Service;
+class Descriptor;
+class Message;
 
-        typedef std::shared_ptr<Message> MessagePtr;
+typedef std::shared_ptr<Message> MessagePtr;
 
-    }  // namespace protobuf
+}  // namespace protobuf
 }  // namespace google
 
 namespace muduo {
-    namespace net {
+namespace net {
 
-        class Service;
+class Service;
 
-    } // namespace net
+} // namespace net
 } // namespace muduo
 
 typedef std::shared_ptr<::muduo::net::Service> ServicePtr;
@@ -42,15 +42,43 @@ struct SServiceInfo
 typedef std::map<const ::google::protobuf::Descriptor*, SServiceInfo> TMapDescriptor2ServiceInfo;
 
 
-typedef std::function<void(const ::google::protobuf::MethodDescriptor* method,
-                           const ::google::protobuf::MessagePtr& request,
-                           const ::google::protobuf::MessagePtr& response)> TFuncDelayResponse;
+// typedef std::function<void( const ::google::protobuf::MethodDescriptor* method,
+//                             const ::google::protobuf::MessagePtr& request,
+//                             const ::google::protobuf::MessagePtr& response)> TFuncDelayResponse;
 
-struct SDelayInfo
+// struct SDelayInfo
+// {
+//     ::google::protobuf::MessagePtr response;
+//     TFuncDelayResponse funcDelayResponse;
+// };
+// typedef std::map<QWORD, SDelayInfo> TMapQWORD2DelayInfo;
+
+
+struct OutstandingCall
 {
-    ::google::protobuf::MessagePtr response;
-    TFuncDelayResponse funcDelayResponse;
+    ::google::protobuf::MessagePtr request = nullptr;
+    ENUM::EServiceType serviceType = ENUM::SERVICETYPE_MIN;
+    int methodIndex = -1;
+    //TimerId timerId;
 };
-typedef std::map<QWORD, SDelayInfo> TMapQWORD2DelayInfo;
 
 
+class RpcChannel;
+typedef std::shared_ptr<RpcChannel> RpcChannelPtr;
+
+struct SDelayResponse               // delay response
+{
+    ENUM::EServerType from = ENUM::ESERVERTYPE_MIN;
+    ::google::protobuf::MessagePtr response = nullptr;
+    QWORD delayResponseId = 0;
+    QWORD msgId = 0;
+    QWORD accid = 0;
+};
+
+struct SRpcChannelMethodArgs        // method args
+{
+    bool bDelay {false};
+    ENUM::EServerType from {ENUM::ESERVERTYPE_MIN};
+    QWORD msgId {0};
+    QWORD accid {0};
+};

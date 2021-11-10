@@ -8,6 +8,7 @@
 #include "Components/EditableTextBox.h"
 #include "Base/Log/Logger.h"
 #include "System/Subsystem/MgrMessage.h"
+
 #include "service/c2a_user.pb.h"
 
 void UTestUI::NativeConstruct()
@@ -30,16 +31,13 @@ void UTestUI::onButtonTest()
     {
         CMD::C2A_UserSignInArgPtr request = std::make_shared<CMD::C2A_UserSignInArg>();
         uint64_t accid = FCString::Strtoui64(*m_EditableTextBox->GetText().ToString(), nullptr, 10);
+        // TODO 账号格式检查
         request->set_accid(accid);
         pMgrMessage->SetAccid(accid);
         pMgrMessage->Send(request);
     }
-
+    
+    
     SetVisibility(ESlateVisibility::Hidden);
 }
-
-//void UTestUI::solved(sudoku::SudokuResponse* response)
-//{
-//    LLOG_UI("%d %s", response->solved(), *FString(response->checkerboard().c_str()));
-//}
 

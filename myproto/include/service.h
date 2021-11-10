@@ -37,7 +37,8 @@ class RpcChannelBase : noncopyable
 public:
     virtual void CallMethod(const ::google::protobuf::MethodDescriptor* method,
                             const ::google::protobuf::MessagePtr& request,
-                            const ::google::protobuf::MessagePtr& response) {}
+                            const ::google::protobuf::MessagePtr& response,
+                            void* args) {}
 };
 
 
@@ -57,8 +58,6 @@ class Service : noncopyable
 
   // Get the ServiceDescriptor describing this service and its methods.
   virtual const ::google::protobuf::ServiceDescriptor* GetDescriptor() = 0;
-
-  virtual void SetRpcChannel(std::shared_ptr<muduo::net::RpcChannelBase> pChannel) {}
 
   // Call a method of the service specified by MethodDescriptor.  This is
   // normally implemented as a simple switch() that calls the standard
@@ -87,7 +86,8 @@ class Service : noncopyable
   //   possibly to get more information about the error.
   virtual void CallMethod(const ::google::protobuf::MethodDescriptor* method,
                           const ::google::protobuf::MessagePtr& request,
-                          const ::google::protobuf::MessagePtr& response) {}
+                          const ::google::protobuf::MessagePtr& response,
+                          void* args) {}
 
   // CallMethod() requires that the request and response passed in are of a
   // particular subclass of Message.  GetRequestPrototype() and

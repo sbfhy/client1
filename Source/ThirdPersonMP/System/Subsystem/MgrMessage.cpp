@@ -27,6 +27,11 @@ UMgrMessage::UMgrMessage()
     InternalSendPbcFunc = [](const std::string&) {};
 }
 
+void UMgrMessage::Tick(float DeltaTime)
+{
+    TickMessageQueue(DeltaTime);
+}
+
 void UMgrMessage::Connect(const FString& Host)
 {
     LLOG_NET("%s", *Host);
@@ -93,10 +98,10 @@ void UMgrMessage::Initialize(FSubsystemCollectionBase& Collection)
     });
 
     InternalConnectFunc = [this](const FString& Host) {
-        if (!MessageDelegateHandler.IsValid())
-        {
-            MessageDelegateHandler = GetWorld()->OnTickDispatch().AddUObject(this, &UMgrMessage::TickMessageQueue);
-        }
+        //if (!MessageDelegateHandler.IsValid())
+        //{
+        //    MessageDelegateHandler = GetWorld()->OnTickDispatch().AddUObject(this, &UMgrMessage::TickMessageQueue);
+        //}
 
         int Index = -1;
         Host.FindLastChar(TEXT(':'), Index);
@@ -108,11 +113,11 @@ void UMgrMessage::Initialize(FSubsystemCollectionBase& Collection)
     InternalDisconnectFunc = [this]() {
         TCPSocketPtr->Disconnect();
 
-        if (MessageDelegateHandler.IsValid())
-        {
-            GetWorld()->OnTickDispatch().Remove(MessageDelegateHandler);
-            MessageDelegateHandler.Reset();
-        }
+        //if (MessageDelegateHandler.IsValid())
+        //{
+        //    GetWorld()->OnTickDispatch().Remove(MessageDelegateHandler);
+        //    MessageDelegateHandler.Reset();
+        //}
 
         MessageQueue.Empty();
     };
@@ -134,7 +139,7 @@ void UMgrMessage::Initialize(FSubsystemCollectionBase& Collection)
 
     TCPSocketPtr = MakeShareable(new FTCPSocket(ConnectDelegate, DisconnectedDelegate, ReceivedMessageDelegate));
     m_RpcChannelPtr->SetTCPSocketPtr(TCPSocketPtr);
-    
+
     Connect(FString("172.26.25.15:9981"));
 
     registerService();
@@ -180,13 +185,12 @@ void UMgrMessage::registerService()
     {
         auto funcParseService = [this, &serviceType](const std::string& serviceTypeName)
         {
-            ServicePtr ptrService = ServicePtr( static_cast<muduo::net::Service*>(
-                                                MgrDynamicFactory::Instance().CreateService(serviceTypeName, this)) );
-            //ServicePtr ptrService = nullptr;
-            // if (ENUM::EServiceType_IsValid(serviceType) && !ptrService)
-            // {
-            //     {LDBG("M_NET") << serviceTypeName << " 未注册";}
-            // }
+            ServicePtr ptrService = ServicePtr(static_cast<muduo::net::Service*>(
+                MgrDynamicFactory::Instance().CreateService(serviceTypeName, this)));
+            //if (ENUM::EServiceType_IsValid(serviceType) && !ptrService)
+            //{
+            //    LLOG_NET("[service-未注册] %s", *FString(serviceTypeName.c_str()));
+            //}
             if (!ptrService) return;
             const auto* serviceDesc = ptrService->GetDescriptor();
             if (!serviceDesc) return;
@@ -205,7 +209,7 @@ void UMgrMessage::registerService()
                                                             i,
                                                             from,
                                                             to
-                                                        };
+                };
                 LLOG_NET("[service-注册method] %s %s, from:%d, to:%d", *FString(serviceTypeName.c_str()), *FString(serviceDesc->method(i)->name().c_str()), from, to);
             }
         };
@@ -245,7 +249,7 @@ const ::google::protobuf::MethodDescriptor* UMgrMessage::GetMethodDescriptor(ENU
     return serviceDesc->method(methodIdx);
 }
 
-void UMgrMessage::getServiceFromTo(const std::string& serviceTypeName, ENUM::EServerType &from, ENUM::EServerType &to)
+void UMgrMessage::getServiceFromTo(const std::string& serviceTypeName, ENUM::EServerType& from, ENUM::EServerType& to)
 {
     static const std::map<char, ENUM::EServerType> s_mapChar2ServiceType = {
         {'C', ENUM::ESERVERTYPE_CLIENT},
@@ -253,7 +257,7 @@ void UMgrMessage::getServiceFromTo(const std::string& serviceTypeName, ENUM::ESe
         {'G', ENUM::ESERVERTYPE_GAMESERVER},
     };
 
-    auto func = [](char c, ENUM::EServerType &type)
+    auto func = [](char c, ENUM::EServerType& type)
     {
         auto itFind = s_mapChar2ServiceType.find(c);
         if (itFind == s_mapChar2ServiceType.end()) return;
@@ -263,5 +267,33 @@ void UMgrMessage::getServiceFromTo(const std::string& serviceTypeName, ENUM::ESe
     if (serviceTypeName.size() < 3) return;
     func(serviceTypeName[0], from);
     func(serviceTypeName[2], to);
+}
+
+SDelayResponse* UMgrMessage::NewDelayResponse(const SRpcChannelMethodArgs& args)
+{
+    QWORD delayId = ++m_delayResponseId;
+    SDelayResponse* ret = nullptr;
+    ret = &m_delayResponse[delayId];
+    ret->delayResponseId = delayId;
+    ret->accid = args.accid;
+    ret->msgId = args.msgId;
+    ret->from = args.from;
+    return ret;
+}
+
+void UMgrMessage::DoDelayResponse(QWORD delayResponseId)
+{
+    SDelayResponse delayResponse;
+    auto itFind = m_delayResponse.find(delayResponseId);
+    if (itFind == m_delayResponse.end()) return;
+    delayResponse = itFind->second;
+    m_delayResponse.erase(itFind);
+    if (m_RpcChannelPtr)
+    {
+        m_RpcChannelPtr->DoneCallback(delayResponse.response,
+            delayResponse.msgId,
+            delayResponse.accid,
+            delayResponse.from);
+    }
 }
 

@@ -1,6 +1,9 @@
 #include "c2a_user_stub.h"
 
 #include "Base/Log/Logger.h"
+#include "ThirdPersonMP/ThirdPersonMPGameMode.h"
+#include "ThirdPersonMP/ThirdPersonMPCharacter.h"
+
 
 using namespace RPC;
 
@@ -19,10 +22,10 @@ C2A_UserService_Stub::C2A_UserService_Stub(UMgrMessage* pMgrMessage)
 void C2A_UserService_Stub::C2A_UserSignIn_DoneCb(const ::CMD::C2A_UserSignInArgPtr& request,
                                                  const ::CMD::C2A_UserSignInResPtr& response)
 {
-    if (response)
+    if (response && response->allow_sign_in())
     {
-        LLOG_NET("%d", response->allow_sign_in());
-        if (m_MgrMessage)
+        LLOG_NET("accid:%d", request->accid());
+        if (m_MgrMessage && m_MgrMessage->GetWorld())
         {
             m_MgrMessage->SetAccid(request->accid());
         }

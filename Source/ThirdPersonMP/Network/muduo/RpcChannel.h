@@ -2,6 +2,8 @@
 
 #include "service/service_enum.pb.h"
 #include "service.h"
+#include "Base/Define/DefineVariable.h"
+#include "Network/muduo/define_service.h"
 #include <google/protobuf/service.h>
 #include <map>
 
@@ -47,20 +49,18 @@ public:
     void OnMessage(const TArray<uint8>& Data);
 
     void Send(const ::google::protobuf::MessagePtr& request);
+    void Send(const CMD::RpcMessage& msg);
+
+    void DoneCallback(::google::protobuf::MessagePtr response,
+                      QWORD id,
+                      QWORD accid,
+                      ENUM::EServerType from);
 
 private:
     void serviceHandleRequestMsg(const RpcMessage& message);    // Service处理request消息
     void stubHandleResponseMsg(const RpcMessage& message);      // Stub处理response消息
 
 private:
-    struct OutstandingCall
-    {
-        ::google::protobuf::MessagePtr request = nullptr;
-        ENUM::EServiceType serviceType = ENUM::SERVICETYPE_MIN;
-        int methodIndex = -1;
-        //TimerId timerId;
-    };
-
     uint64_t m_id = 0;                                  // 自增Id，回调函数需要
     std::map<uint64_t, OutstandingCall> m_outstandings;
     

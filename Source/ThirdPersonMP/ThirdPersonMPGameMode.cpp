@@ -6,6 +6,10 @@
 #include "Base/Log/Logger.h"
 #include "ThirdPersonMP/System/Managers.h"
 #include "ThirdPersonMP/Base/Define/DefineNew.h"
+#include "Kismet/GameplayStatics.h"
+
+#include "System/Subsystem/MgrMessage.h"
+#include "service/c2g_scene.pb.h"
 
 AThirdPersonMPGameMode::AThirdPersonMPGameMode()
 {
@@ -20,51 +24,55 @@ AThirdPersonMPGameMode::AThirdPersonMPGameMode()
 
 AThirdPersonMPGameMode::~AThirdPersonMPGameMode()
 {
-    //DELETE_SAFE(m_managers);
 }
 
 void AThirdPersonMPGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
     UE_LOG(LogTemp, Warning, TEXT("AThirdPersonMPGameMode::InitGame()"));
     Super::InitGame(MapName, Options, ErrorMessage);
-    //m_managers = new Managers();
 }
 
 void AThirdPersonMPGameMode::StartPlay()
 {
-    //UE_LOG(LogTemp, Warning, TEXT("AThirdPersonMPGameMode::StartPlay()"));
     Super::StartPlay();
-    //if (m_managers)
-    //{
-    //    m_managers->Init();
-    //}
 }
 
 void AThirdPersonMPGameMode::BeginPlay()
 {
-    //UE_LOG(LogTemp, Warning, TEXT("AThirdPersonMPGameMode::BeginPlay()"));
-    LLOG_NET("AThirdPersonMPGameMode::BeginPlay()");
+    LLOG_HY("AThirdPersonMPGameMode::BeginPlay()， %p", GetWorld());
     Super::BeginPlay();
+    
+    C2G_NotifyLoadedScene();
 }
 
 void AThirdPersonMPGameMode::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    //UE_LOG(LogTemp, Warning, TEXT("AThirdPersonMPGameMode::EndPlay(), EndPlayReason:%d"), static_cast<int>(EndPlayReason));
-    LLOG_NET("AThirdPersonMPGameMode::EndPlay(), EndPlayReason:%d", static_cast<int>(EndPlayReason));
-    //if (m_managers)
-    //{
-    //    m_managers->End();
-    //}
+    LLOG_HY("AThirdPersonMPGameMode::EndPlay(), EndPlayReason:%d", static_cast<int>(EndPlayReason));
     Super::EndPlay(EndPlayReason);
 }
 
 void AThirdPersonMPGameMode::Tick(float DeltaSeconds)
 {
-    //UE_LOG(LogTemp, Warning, TEXT("AThirdPersonMPGameMode::Tick(), DeltaSeconds:%f"), DeltaSeconds);
     Super::Tick(DeltaSeconds);
-    //if (m_managers)
-    //{
-    //    m_managers->Tick(DeltaSeconds * 1000);
-    //}
 }
 
+void AThirdPersonMPGameMode::ChangeApawn(APawn* pPawn)
+{
+    APlayerController* pController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (pController)
+    {
+        pController->UnPossess();
+        pController->Possess(pPawn);
+    }
+}
+
+void AThirdPersonMPGameMode::C2G_NotifyLoadedScene()
+{
+    UMgrMessage* pMgrMessage = GetGameInstance()->GetSubsystem<UMgrMessage>();
+    if (pMgrMessage)
+    {
+        CMD::C2G_NotifyLoadedSceneArgPtr C2G_NotifyLoadedSceneArgPtr = std::make_shared<CMD::C2G_NotifyLoadedSceneArg>();
+        C2G_NotifyLoadedSceneArgPtr->set_mapid(1);
+        pMgrMessage->Send(C2G_NotifyLoadedSceneArgPtr);
+    }
+}
