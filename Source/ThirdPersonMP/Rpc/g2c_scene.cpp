@@ -32,14 +32,14 @@ void G2C_SceneService::G2C_CreatePlayerPawn(const ::CMD::G2C_CreatePlayerPawnArg
                                             const ::CMD::EmptyResponsePtr& response,
                                             void* args)
 {
-    LLOG_HY("G2C_SceneService::G2C_CreatePlayerPawn");
-    
+    if (!m_MgrMessage) return;
     UGameInstance* pGameInstance = m_MgrMessage->GetGameInstance();
     if (!pGameInstance) return;
     UMgrActor* pMgrActor = pGameInstance->GetSubsystem<UMgrActor>();
     if (!pMgrActor) return;
-    AThirdPersonMPGameMode* pGameMode = Cast<AThirdPersonMPGameMode>(m_MgrMessage->GetWorld()->GetAuthGameMode());
     APawn* pPawn = pMgrActor->SpawnActor();
-    if (!pPawn) return;
+    LLOG_HY("G2C_SceneService::G2C_CreatePlayerPawn, m_accid:%llu, accid:%llu", m_MgrMessage->GetAccid(), request->accid());
+    if (!pPawn || request->accid() != m_MgrMessage->GetAccid()) return;
+    AThirdPersonMPGameMode* pGameMode = Cast<AThirdPersonMPGameMode>(m_MgrMessage->GetWorld()->GetAuthGameMode());
     pGameMode->ChangeApawn(pPawn);
 }
